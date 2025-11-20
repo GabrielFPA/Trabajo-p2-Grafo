@@ -177,7 +177,7 @@ class BuscaProfundidade(CriarLista):
             print(f"   pilha: {self.pilha}")
             passo += 1
 
-        print("\n===== BFS Finalizada =====")
+        print("\n===== DFS Finalizada =====")
         print("Ordem de visitação:", " → ".join(self.visitados))
         return self.visitados
 
@@ -219,3 +219,4 @@ buscar.dfs('A')
                     i. ciclo foi detectado
 4. Nenhum ciclo detectado
 """
+
