@@ -120,7 +120,6 @@ class CriarLista:
     def limpar_grafo(self):
         self.lista_vertice.clear()
         return self.lista_vertice
-    
 
 
 
@@ -129,94 +128,88 @@ class BuscaProfundidade(CriarLista):
         super().__init__()
         self.visitados = []
         self.pilha = []
-    
+        self.ciclos_encontrados = []
+
+    def _print_estado(self, passo):
+        pilha_formatada = [item['vertice'] for item in self.pilha]
+        print(f"\n{passo}°")
+        print(f"Visitados: {self.visitados}")
+        print(f"Pilha: {pilha_formatada}")
+
     def dfs(self, inicio):
-        pilha = [{'vertice': inicio, 'pai': None}]
-        
         if inicio not in self.lista_vertice:
-            print(f"Erro: o vértice '{inicio}' não existe no grafo.") 
+            print(f"Erro: o vértice '{inicio}' não existe no grafo.")
             return []
         
         self.visitados = []
-        self.pilha = [inicio]
-
+        self.pilha = []
+        self.ciclos_encontrados = []
         passo = 1
 
+        self._print_estado(passo)
+        passo += 1
+
+        self.pilha.append({'vertice': inicio, 'pai': None})
+        self._print_estado(passo)
+        passo += 1
+
         while len(self.pilha) > 0:
-            if len(self.visitados) == 0:
-                print(f"\n{passo}° estado:")
-                print(f"   visitados: {self.visitados}")
-                print(f"   pilha: {self.pilha}")
-                passo += 1
+            item_atual = self.pilha.pop()
+            vertice_atual = item_atual['vertice']
+            pai = item_atual['pai']
 
-                atual = self.pilha.pop(-1)
-                self.visitados.append(atual)
+            if vertice_atual not in self.visitados:
+                self.visitados.append(vertice_atual)
 
-                for v in self.lista_vertice[atual]:
-                    if v not in self.pilha:
-                        self.pilha.append(v)
+            vizinhos = self.lista_vertice[vertice_atual]
 
-                print(f"\n{passo}° estado:")
-                print(f"   visitados: {self.visitados}")
-                print(f"   pilha: {self.pilha}")
-                passo += 1
+            for vizinho in reversed(vizinhos):
+                vizinho_pilha = False
+                for i in self.pilha:
+                    if i['vertice'] == vizinho:
+                        vizinho_pilha = True
+                        break
 
-                continue
+                vizinho_visitado = vizinho in self.visitados
+                
+                if not vizinho_visitado and not vizinho_pilha:
+                    self.pilha.append({'vertice': vizinho, 'pai': vertice_atual})
 
-            atual = self.pilha.pop(-1)
-
-            if atual not in self.visitados:
-                self.visitados.append(atual)
-
-            for v in self.lista_vertice[atual]:
-                if v not in self.visitados and v not in self.pilha:
-                    self.pilha.append(v)
-
-            print(f"\n{passo}° estado:")
-            print(f"   visitados: {self.visitados}")
-            print(f"   pilha: {self.pilha}")
+                else:
+                    if vizinho != pai:
+                        descricao_ciclo = f"{vertice_atual} -> {vizinho}"
+                        if descricao_ciclo not in self.ciclos_encontrados:
+                            self.ciclos_encontrados.append(descricao_ciclo)
+            self._print_estado(passo)
             passo += 1
 
-        print("\n===== DFS Finalizada =====")
-        print("Ordem de visitação:", " → ".join(self.visitados))
+        if self.ciclos_encontrados:
+            print(f"\nForam detectados {len(self.ciclos_encontrados)} ciclo(s) no grafo:")
+            for c in self.ciclos_encontrados:
+                print(f"{c}")   
+        else:
+            print("\nNenhum ciclo encontrado.")
+
         return self.visitados
 
 grafo = CriarLista()
 
 grafo.inserir_vertice(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'])
-grafo.inserir_aresta('A', 'B', True)
-grafo.inserir_aresta('A', 'D', True)
-grafo.inserir_aresta('B', 'C', True)
-grafo.inserir_aresta('D', 'E', True)
-grafo.inserir_aresta('D', 'F', True)
-grafo.inserir_aresta('D', 'H', True)
-grafo.inserir_aresta('H', 'I', True)
-grafo.inserir_aresta('F', 'G', True)
-grafo.inserir_aresta('E', 'G', True)
-grafo.inserir_aresta('E', 'A', True)
-grafo.inserir_aresta('G', 'I', True)
+grafo.inserir_aresta('A', 'B')
+grafo.inserir_aresta('A', 'D')
+grafo.inserir_aresta('B', 'C')
+grafo.inserir_aresta('D', 'E')
+grafo.inserir_aresta('D', 'F')
+grafo.inserir_aresta('D', 'H')
+grafo.inserir_aresta('H', 'I')
+grafo.inserir_aresta('F', 'G')
+grafo.inserir_aresta('E', 'G')
+grafo.inserir_aresta('E', 'A')
+grafo.inserir_aresta('G', 'I')
+grafo.inserir_aresta('B', 'A')
 
 buscar = BuscaProfundidade()
 
 buscar.lista_vertice = grafo.lista_vertice
 
 buscar.dfs('A')
-
-"""
-1. Inserir a estrutura com vértice inicial e Pai vazio na pilha
-2. Iniciar a lista de visitados vazia
-3. Enquanto a Pilha não estiver vazia:
-    a. Retirar o item da Pilha
-    b. Marcar vértice do item como visitado
-    c. Obter os vizinhos do vértice
-    d. Para cada vizinho:
-        i. Verificar se o vizinho não está na pilha
-        ii. Verificar se o vizinho já não foi visitado
-            1. Caso falso para os dois:
-                a. adicionar na pilha com o vértice atual como pai
-            2. se não:
-                a. caso o vizinho não seja o pai:
-                    i. ciclo foi detectado
-4. Nenhum ciclo detectado
-"""
-
